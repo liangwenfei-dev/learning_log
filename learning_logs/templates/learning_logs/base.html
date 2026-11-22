@@ -1,0 +1,186 @@
+{% load static %}
+{% load django_bootstrap5 %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning Log</title>
+    {% bootstrap_css %}
+
+    {% bootstrap_javascript %}
+</head>
+<body data-bs-theme="light">
+    <nav class="navbar navbar-expand-md mb-4 border">
+        <div class="container-fluid">
+            <a class="navbar-brand text-body" href="{% url 'learning_logs:index' %}">Learning Log</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'learning_logs:index' %}">主题</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'learning_logs:trash' %}">♻️回收站</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'learning_logs:dashboard' %}">数据面板</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'learning_logs:profile'%}">个人主页</a>
+                    </li>
+                </ul>
+
+                <button id="theme-toggle" class="btn btn-outline-secondary btn-sm me-3">
+                    <span id="theme-icon">🌙</span>暗黑
+                </button>
+
+                <!-- 注意：这里改成了正确的 position -->
+                <div class="position-relative me-3">
+                    <form class="d-flex me-4" action="{% url 'learning_logs:index' %}" method="get" id="search-form">
+                        <input class="form-control me-2" type="search" name="q" id="search-input" placeholder="搜索我的主题..." aria-label="Search" style="width: 200px;" value="{{ request.GET.q }}" autocomplete="off">
+                        <button class="btn btn-outline-success text-nowrap" type="submit">搜索</button>
+                    </form>
+                    <ul id="suggestions-box" class="list-group position-absolute w-100 shadow" style="display:none; z-index: 1050; max-height: 200px; overflow-y:auto;">
+                    </ul>
+                </div>
+
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">你好，{{ user.username }}。</span>
+                        </li>
+                        <li class="nav-item">
+                            <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm ms-2">注销</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:register' %}">注册</a>
+                        </li>
+                        
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock content %}
+    </div>
+
+    <!-- 所有的 JS 都在正确的位置 -->
+    <script>
+        
+
+        // ========== 1. 暗黑模式逻辑 ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+
+            if (localStorage.getItem('theme') === 'dark') {
+                body.setAttribute('data-bs-theme', 'dark');
+                if (themeIcon) themeIcon.textContent = '☀️';
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    if (body.getAttribute('data-bs-theme') === 'dark') {
+                        body.setAttribute('data-bs-theme', 'light');
+                        localStorage.setItem('theme', 'light');
+                        if (themeIcon) themeIcon.textContent = '🌙';
+                    } else {
+                        body.setAttribute('data-bs-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        if (themeIcon) themeIcon.textContent = '☀️';
+                    }
+                });
+            }
+        });
+
+        // ========== 2. 搜索下拉提示逻辑 ==========
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('suggestions-box');
+        
+
+        if (searchInput && suggestionsBox) {
+            searchInput.addEventListener('input', function () {
+                const query = this.value.trim();
+                
+                if (query.length === 0) {
+                    suggestionsBox.style.display = 'none';
+                    return;
+                }
+
+                fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsBox.innerHTML = '';
+                        
+                        if (data.length > 0) {
+                            data.forEach(topic => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action';
+                                li.style.cursor = 'pointer';
+                                li.textContent = topic.text;
+                                
+                                li.onclick = function () {
+                                    searchInput.value = topic.text;
+                                    suggestionsBox.style.display = 'none';
+                                    document.getElementById('search-form').submit();
+                                };
+                                
+                                suggestionsBox.appendChild(li);
+                            });
+                            suggestionsBox.style.display = 'block';
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error fetching suggestions:', error));
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.style.display = 'none';
+                }
+            });
+        }
+            // ========== 3. 页面入场动画触发 ==========
+    // 每次页面加载或内容变化时，重新触发卡片动画
+    function triggerCardAnimation() {
+        const cards = document.querySelectorAll('.animated-card');
+        if (cards.length > 0) {
+            // 先强制让它们隐藏
+        cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            });
+            // 强制浏览器重绘
+             void document.body.offsetWidth;
+            // 然后恢复原状，触发过渡
+             setTimeout(() => {
+                cards.forEach(card => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                });
+            }, 50);
+        }
+    }
+
+    // 页面首次加载时触发
+    window.addEventListener('load', triggerCardAnimation);
+    </script>
+</body>
+</html>

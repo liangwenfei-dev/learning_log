@@ -1,0 +1,38 @@
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+    <p>主题:<strong>{{ topic }}</strong> </p>
+    {% if topic.image %}
+        <div class="mb-4 text-center">
+            <img src="{{topic.image.url }}" class="img-fluid rounded shadow" alt="{{ topic.text }}" style="max-height: 400px; width: 100%; object-fit: cover;">
+        </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+        <h5 class="mb-0">笔记内容</h5>
+        <a href="{% url 'learning_logs:new_entry' topic.id %}" class="btn btn-primary">添加笔记</a>
+    </div>
+    <div class="row">
+        {% for entry in entries %}
+        <div class="col-md-12 mb-3">
+            <div class="card">
+                <div class="card-header text-muted small">
+                    {{ entry.date_added|date:'Y年m月d日 H:i' }}
+                </div>
+                <div class="card-body">
+                    <div class="card-text">{{ entry.text|safe }}</div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-primary">编辑</a>
+                    <a href="{% url 'learning_logs:delete_entry' entry.id %}" class="btn btn-sm btn-outline-danger">删除</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+    <div class="col-12">
+        <p>这个主题下还没有笔记。</p>
+    </div>
+    {% endfor %}
+    </div>
+    
+{% endblock content %}

@@ -1,0 +1,8 @@
+<p>学习笔记</p>
+<ul>
+  {% for topic in topics %}
+    <li>{{ topic }}</li>
+  {% empty %}
+    <li>还没有添加任何主题。</li>
+  {% endfor %}
+</ul>

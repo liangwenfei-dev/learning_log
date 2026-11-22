@@ -1,0 +1,28 @@
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 40px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* 强制让动画生效，哪怕系统开启了减少动态效果 */
+.animate__animated {
+    animation-duration: 0.8s !important;
+    animation-fill-mode: both !important;
+    animation-delay: var(--anim-delay, 0s) !important; /* 使用 CSS 变量控制延迟 */
+}
+
+.animate__fadeInUp {
+    animation-name: fadeInUp !important;
+}
+
+/* 如果系统强制关闭动画，我们也强制开启 */
+@media (prefers-reduced-motion: no-preference) {
+    .animate__animated {
+        animation-duration: 0.8s !important;
+    }
+}

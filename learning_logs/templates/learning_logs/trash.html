@@ -1,0 +1,46 @@
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+  <!-- 顶部区域：标题和右侧的按钮组 -->
+  <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+      <div>
+          <h3 class="mb-0">♻️ 我的回收站</h3>
+          <p class="text-muted mb-0">这里放着你删除的主题。如果你后悔了，可以点恢复。</p>
+      </div>
+      
+      <div>
+          <a href="{% url 'learning_logs:index' %}" class="btn btn-warning me-2">返回首页</a>
+          
+          {% if topics %}
+          <form action="{% url 'learning_logs:empty_trash' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger" onclick="return confirm('警告：彻底清空后，所有数据将无法找回！你确定吗？');">
+                  🗑️ 清空回收站
+              </button>
+          </form>
+          {% endif %}
+      </div>
+  </div>
+
+  <!-- 卡片列表 -->
+  <div class="row">
+    {% for topic in topics %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ topic }}</h5>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="text-danger small">已删除</span>
+            <a href="{% url 'learning_logs:restore_topic' topic.id %}" class="btn btn-sm btn-success">恢复</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5">
+        <h5 class="text-muted">回收站空空如也</h5>
+        <p class="text-muted">你没有删除过任何主题。</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock content %}

@@ -1,0 +1,25 @@
+{% extends "learning_logs/base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg text-center">
+            <div class="card-body p-5">
+                <h2 class="mb-4">🦉我的个人主页</h2>
+                <p class="fs-4">你好，<strong>{{ user.username }}</strong></p>
+
+                <hr class="my-4">
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <h3 class="text-primary">{{ topic_count }}</h3>
+                        <p class="text-muted">个学习主题</p>
+                    </div>
+                    <div class="col_6">
+                        <h3 class="text-success">{{ entry_count }}</h3>
+                        <p class="text-muted">篇学习笔记</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

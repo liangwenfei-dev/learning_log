@@ -1,0 +1,56 @@
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">📊 我的学习数据统计</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">这里展示了你这个月记录的笔记数量</p>
+                <!-- 加个固定高度，防止图表被挤成一条线 -->
+                <div style="height: 400px;">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/chart_data/')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('myChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{  // 👈 datasets 是复数
+                            label: '每月笔记数量',
+                            data: data.counts,
+                            backgroundColor: 'rgba(74, 144, 217, 0.7)',
+                            borderColor: 'rgba(74, 144, 217, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {  // 👈 options 小写
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('获取图表数据失败', error));
+    });
+</script>
+{% endblock content %}

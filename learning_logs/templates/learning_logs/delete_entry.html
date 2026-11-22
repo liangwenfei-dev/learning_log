@@ -1,0 +1,17 @@
+{% extends "learning_logs/base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <h3 class="text-center">确认删除</h3>
+        <p>你确认要删除这条笔记吗？</p>
+        <div class="alert alert-secondary">
+            "{{ object.text|striptags|truncatechars:50 }}"
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger mt-3">确认删除</button>
+            <a href="{% url 'learning_logs:topic' object.topic.id %}" class="btn btn-secondary mt-3">取消</a>
+        </form>
+    </div>
+</div>
+{% endblock content %}

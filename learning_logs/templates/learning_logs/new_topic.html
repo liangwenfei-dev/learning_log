@@ -1,0 +1,20 @@
+{% extends "learning_logs/base.html" %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-white text-center">
+                <h4 class="mb-0">添加主题</h4>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'learning_logs:new_topic' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <button name="submit" class="btn btn-success w-100 mt-3">添加主题</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

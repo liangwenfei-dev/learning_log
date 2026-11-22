@@ -1,0 +1,10 @@
+{% extends "learning_logs/base.html" %}
+
+{% block content %}
+  <p>编辑主题：</p>
+  <form action="{% url 'learning_logs:edit_topic' topic.id %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button name="submit">保存修改</button>
+  </form>
+{% endblock content %}
