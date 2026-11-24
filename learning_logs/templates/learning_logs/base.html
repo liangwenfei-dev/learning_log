@@ -8,8 +8,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Learning Log</title>
     {% bootstrap_css %}
-
     {% bootstrap_javascript %}
+
+    <style>
+        .animated-card {
+            transition: all 0.4s ease-out;
+        }
+        /* 用户悬浮卡片容器 */
+        .avatar-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        /* 自定义悬浮卡片 */
+        .user-popup-card {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 12px;
+            width: 220px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            z-index: 1060;
+            display: none;
+        }
+        /* 暗黑模式适配卡片 */
+        [data-bs-theme="dark"] .user-popup-card {
+            background-color: #2b3035;
+            color: #dee2e6;
+        }
+        [data-bs-theme="light"] .user-popup-card {
+            background-color: #fff;
+            color: #212529;
+        }
+    </style>
 </head>
 <body data-bs-theme="light">
     <nav class="navbar navbar-expand-md mb-4 border">
@@ -21,6 +54,7 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarCollapse">
+                <!-- 左侧导航菜单 -->
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'learning_logs:index' %}">主题</a>
@@ -32,43 +66,71 @@
                         <a class="nav-link" href="{% url 'learning_logs:dashboard' %}">数据面板</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'learning_logs:profile'%}">个人主页</a>
+                        <a class="nav-link" href="{% url 'accounts:profile' %}">个人资料</a>
                     </li>
                 </ul>
 
+                <!-- 暗黑切换按钮 -->
                 <button id="theme-toggle" class="btn btn-outline-secondary btn-sm me-3">
                     <span id="theme-icon">🌙</span>暗黑
                 </button>
 
-                <!-- 注意：这里改成了正确的 position -->
+                <!-- 搜索框 + 联想下拉 -->
                 <div class="position-relative me-3">
-                    <form class="d-flex me-4" action="{% url 'learning_logs:index' %}" method="get" id="search-form">
-                        <input class="form-control me-2" type="search" name="q" id="search-input" placeholder="搜索我的主题..." aria-label="Search" style="width: 200px;" value="{{ request.GET.q }}" autocomplete="off">
+                    <form class="d-flex" action="{% url 'learning_logs:index' %}" method="get" id="search-form">
+                        <input class="form-control me-2" type="search" name="q" id="search-input" placeholder="搜索我的主题..."
+                            aria-label="Search" style="width: 200px;" value="{{ request.GET.q }}" autocomplete="off">
                         <button class="btn btn-outline-success text-nowrap" type="submit">搜索</button>
                     </form>
-                    <ul id="suggestions-box" class="list-group position-absolute w-100 shadow" style="display:none; z-index: 1050; max-height: 200px; overflow-y:auto;">
+                    <ul id="suggestions-box" class="list-group position-absolute w-100 shadow"
+                        style="display:none; z-index: 1050; max-height: 200px; overflow-y:auto;">
                     </ul>
                 </div>
 
-                <ul class="navbar-nav">
+                <!-- 右侧：用户区域 -->
+                <ul class="navbar-nav align-items-center">
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <span class="navbar-text me-3">你好，{{ user.username }}。</span>
-                        </li>
-                        <li class="nav-item">
-                            <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger btn-sm ms-2">注销</button>
-                            </form>
-                        </li>
+                    <li class="nav-item d-flex align-items-center">
+                        <span class="avatar-wrap">
+                            {% if user.profile.avatar %}
+                            <img 
+                                src="{{ user.profile.avatar.url }}" 
+                                alt="头像" 
+                                style="width:36px;height:36px;border-radius:50%;object-fit:cover;margin-right:8px;cursor:pointer;"
+                            >
+                            {% else %}
+                            <i class="bi bi-person-circle fs-3 me-2"></i>
+                            {% endif %}
+                            
+
+                            <!-- ✅ 自定义悬浮卡片，不再使用popover -->
+                            <div class="user-popup-card text-center">
+                                {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:8px;">
+                                {% else %}
+                                <i class="bi bi-person-circle" style="font-size:80px;color:#999;"></i>
+                                {% endif %}
+                                <div class="fw-bold">{{ user.username }}</div>
+                                <div class="text-muted small mt-1">
+                                    {% if user.profile.bio %}{{ user.profile.bio }}{% else %}这个人很神秘，什么都没写~{% endif %}
+                                </div>
+                                <a href="{% url 'learning_logs:profile_edit' %}" class="btn btn-primary btn-sm">编辑资料</a>
+                            </div>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm ms-2">注销</button>
+                        </form>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">登录</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:register' %}">注册</a>
-                        </li>
-                        
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">登录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:register' %}">注册</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -79,10 +141,7 @@
         {% block content %}{% endblock content %}
     </div>
 
-    <!-- 所有的 JS 都在正确的位置 -->
     <script>
-        
-
         // ========== 1. 暗黑模式逻辑 ==========
         document.addEventListener('DOMContentLoaded', () => {
             const body = document.body;
@@ -113,7 +172,6 @@
         const searchInput = document.getElementById('search-input');
         const suggestionsBox = document.getElementById('suggestions-box');
         
-
         if (searchInput && suggestionsBox) {
             searchInput.addEventListener('input', function () {
                 const query = this.value.trim();
@@ -157,30 +215,42 @@
                 }
             });
         }
-            // ========== 3. 页面入场动画触发 ==========
-    // 每次页面加载或内容变化时，重新触发卡片动画
-    function triggerCardAnimation() {
-        const cards = document.querySelectorAll('.animated-card');
-        if (cards.length > 0) {
-            // 先强制让它们隐藏
-        cards.forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            });
-            // 强制浏览器重绘
-             void document.body.offsetWidth;
-            // 然后恢复原状，触发过渡
-             setTimeout(() => {
-                cards.forEach(card => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-                });
-            }, 50);
-        }
-    }
 
-    // 页面首次加载时触发
-    window.addEventListener('load', triggerCardAnimation);
+        // ========== 3. 页面入场动画触发 ==========
+        function triggerCardAnimation() {
+            const cards = document.querySelectorAll('.animated-card');
+            if (cards.length > 0) {
+                cards.forEach(card => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
+                });
+                void document.body.offsetWidth;
+                setTimeout(() => {
+                    cards.forEach(card => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    });
+                }, 50);
+            }
+        }
+        window.addEventListener('load', triggerCardAnimation);
+
+        // ========== ✅ 自定义悬浮卡片逻辑（无抖动） ==========
+        const avatarWraps = document.querySelectorAll('.avatar-wrap');
+        avatarWraps.forEach(wrap => {
+            const popup = wrap.querySelector('.user-popup-card');
+            let timer = null;
+
+            wrap.addEventListener('mouseenter', () => {
+                clearTimeout(timer);
+                popup.style.display = 'block';
+            });
+            wrap.addEventListener('mouseleave', () => {
+                timer = setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 350);
+            });
+        });
     </script>
 </body>
 </html>

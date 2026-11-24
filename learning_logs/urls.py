@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/chart_data/', views.chart_data, name='chart_data'),
     path('profile/',views.profile,name='profile'),
     path('empty_trash/',views.empty_trash,name='empty_trash'),
+    path('profile_edit/', views.edit_profile, name='profile_edit'),
     
 ]

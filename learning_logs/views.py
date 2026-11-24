@@ -177,3 +177,31 @@ def empty_trash(request):
 
         
     return redirect('learning_logs:trash')
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+# 👇 放到文件最顶部（和其他 import 放在一起）
+from accounts.models import Profile
+from accounts.forms import ProfileForm
+
+# 👇 放到文件最底部
+@login_required
+def edit_profile(request):
+    # 获取当前用户的 Profile 对象（如果不存在则自动创建）
+    user_profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        # 一定要加 request.FILES，否则图片传不上去
+        form = ProfileForm(request.POST, request.FILES, instance=user_profile)
+        if form.is_valid():
+            form.save()
+            # 保存后跳回个人主页（这里的 'profile' 是你之前展示统计数据的那个路由）
+            return redirect('learning_logs:profile') 
+    else:
+        form = ProfileForm(instance=user_profile)
+        
+    context = {
+        'form': form,
+        'profile': user_profile,  # 把 profile 传给模板，上面才能显示头像
+    }
+    # 注意这里的模板路径，必须和你的 HTML 文件位置对应
+    return render(request, 'accounts/profile.html', context)
