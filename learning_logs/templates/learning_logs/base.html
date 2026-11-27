@@ -66,7 +66,7 @@
                         <a class="nav-link" href="{% url 'learning_logs:dashboard' %}">数据面板</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:profile' %}">个人资料</a>
+                        <a class="nav-link" href="{% url 'learning_logs:profile' %}">个人资料</a>
                     </li>
                 </ul>
 
@@ -95,7 +95,7 @@
                             {% if user.profile.avatar %}
                             <img 
                                 src="{{ user.profile.avatar.url }}" 
-                                alt="头像" 
+                                alt="头像" class="class="rounded-circle"
                                 style="width:36px;height:36px;border-radius:50%;object-fit:cover;margin-right:8px;cursor:pointer;"
                             >
                             {% else %}
@@ -115,6 +115,7 @@
                                     {% if user.profile.bio %}{{ user.profile.bio }}{% else %}这个人很神秘，什么都没写~{% endif %}
                                 </div>
                                 <a href="{% url 'learning_logs:profile_edit' %}" class="btn btn-primary btn-sm">编辑资料</a>
+                                <a href="{% url 'accounts:password_change' %}" class="btn btn-lutline-secondary btn-sm mt-2">修改密码</a>
                             </div>
                         </span>
                     </li>

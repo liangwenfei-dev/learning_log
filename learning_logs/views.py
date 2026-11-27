@@ -160,15 +160,23 @@ def chart_data(request):
             counts.append(item['count'])
 
     return JsonResponse({'labels': labels, 'counts': counts})
+from accounts.models import Profile # 👈 顶部导入
+
 @login_required
 def profile(request):
-    topic_count = Topic.objects.filter(owner=request.user,is_deleted=False).count()
-    entry_count = Entry.objects.filter(topic__owner=request.user,is_deleted=False).count()
+    # 获取或者创建当前用户的资料
+    user_profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    # 统计数据
+    topic_count = Topic.objects.filter(owner=request.user, is_deleted=False).count()
+    entry_count = Entry.objects.filter(topic__owner=request.user, is_deleted=False).count()
+    
     context = {
-        'topic_count':topic_count,
-        'entry_count':entry_count
+        'topic_count': topic_count,
+        'entry_count': entry_count,
+        'profile': user_profile,  # 👈 传给模板
     }
-    return render(request,'learning_logs/profile.html',context)
+    return render(request, 'learning_logs/profile.html', context)
 @login_required
 def empty_trash(request):
     if request.method == 'POST':
